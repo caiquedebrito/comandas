@@ -17,7 +17,7 @@
       color: #444;
     }
 
-    input, textarea, select, button {
+    input, textarea, button {
       display: block;
       width: 100%;
       max-width: 400px;
@@ -98,11 +98,6 @@
       <h2>Create Order</h2>
       <input type="number" name="table" id="table" placeholder="Table Number">
       <textarea name="description" id="description" placeholder="Order Description"></textarea>
-      <select name="status" id="status">
-        <option value="PENDING">PENDING</option>
-        <option value="PREPARING">PREPARING</option>
-        <option value="DONE">DONE</option>
-      </select>
       <button onclick="sendMessage()">Enviar</button>
     </div>
     <div style="flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 5px; background-color: #fff;">
@@ -148,8 +143,19 @@
       orderCard.innerHTML = `
         <h3>Table ${data.table}</h3>
         <p>${data.description}</p>
-        <p>Status: <span class="status">${data.status}</span></p>
+        <div>
+          <p>Status:</p>
+          <select name="status" id="status">
+            <option value="PENDING">PENDENTE</option>
+            <option value="PREPARING">PREPARANDO</option>
+            <option value="DONE">PRONTO</option>
+          </select>
+        </div>
       `;
+
+      // Define o valor do select dinamicamente
+      const statusSelect = orderCard.querySelector('#status');
+      statusSelect.value = data.status;
       ordersDiv.appendChild(orderCard);
     });
 
@@ -157,12 +163,11 @@
     function sendMessage() {
       const table = document.getElementById('table');
       const description = document.getElementById('description');
-      const status = document.getElementById('status');
 
       const order = {
         table: table.value,
         description: description.value,
-        status: status.value,
+        status: 'PENDING',
         waiterId: user.id
       }
 
