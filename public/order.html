@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat com WebSocket</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    h1 {
+      text-align: center;
+      color: #444;
+    }
+
+    input, textarea, select, button {
+      display: block;
+      width: 100%;
+      max-width: 400px;
+      margin: 10px auto;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+
+    button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:active {
+      background-color: #004085;
+    }
+
+    .order-card {
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 15px;
+      margin: 10px 0;
+      background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .order-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .order-card h3 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      color: #333;
+    }
+
+    .order-card p {
+      margin: 5px 0;
+      font-size: 14px;
+      color: #555;
+    }
+
+    .order-card .status {
+      font-weight: bold;
+      color: #007BFF;
+    }
+  </style>
+</head>
+<body>
+  <h1>Order</h1>
+  <!-- <div id="messages" style="height: 300px; overflow-y: scroll; border: 1px solid #ccc; padding: 10px;"></div> -->
+  <div style="margin-bottom: 20px;">
+    <label for="userType">Select User Type:</label>
+    <select id="userType" onchange="updateUserType()">
+      <option value="WAITER">Waiter</option>
+      <option value="CHEF">Chef</option>
+    </select>
+  </div>
+  <div style="display: flex; justify-content: space-between; gap: 20px;"></div>
+    <div style="flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 5px; background-color: #fff;">
+      <h2>Create Order</h2>
+      <input type="number" name="table" id="table" placeholder="Table Number">
+      <textarea name="description" id="description" placeholder="Order Description"></textarea>
+      <select name="status" id="status">
+        <option value="PENDING">PENDING</option>
+        <option value="PREPARING">PREPARING</option>
+        <option value="DONE">DONE</option>
+      </select>
+      <button onclick="sendMessage()">Enviar</button>
+    </div>
+    <div style="flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 5px; background-color: #fff;">
+      <h2>Orders</h2>
+      <div id="orders" style="height: 300px; overflow-y: auto;">
+    </div>
+  </div>
+
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  <script>
+    function randomId() {
+      return Math.floor(Math.random() * 1000);
+    }
+
+    function updateUserType() {
+      const userType = document.getElementById('userType').value;
+      user.type = userType;
+      console.log('user', user);
+    }
+
+    const type = document.getElementById('userType');
+
+    const user = {
+      id: randomId(),
+      name: 'Waiter',
+      type: type.value
+    }
+
+    console.log('user', user);
+
+    const socket = io('http://localhost:3000');
+
+    socket.on('order', (data) => {
+      if (data.waiterId !== user.id && user.type !== 'CHEF') {
+        return;
+      }
+
+      console.log('recebendo order', data);
+
+      const ordersDiv = document.getElementById('orders');
+      const orderCard = document.createElement('div');
+      orderCard.className = 'order-card';
+      orderCard.innerHTML = `
+        <h3>Table ${data.table}</h3>
+        <p>${data.description}</p>
+        <p>Status: <span class="status">${data.status}</span></p>
+      `;
+      ordersDiv.appendChild(orderCard);
+    });
+
+    // Envia mensagem para o servidor
+    function sendMessage() {
+      const table = document.getElementById('table');
+      const description = document.getElementById('description');
+      const status = document.getElementById('status');
+
+      const order = {
+        table: table.value,
+        description: description.value,
+        status: status.value,
+        waiterId: user.id
+      }
+
+      if (order) {
+        console.log('enviando order', order);
+        socket.emit('createOrder', order); // Envia a mensagem
+        table.value = ''; // Limpa o campo de entrada
+        description.value = ''; // Limpa o campo de entrada
+        status.value = ''; // Limpa o campo de entrada
+      }
+
+    }
+  </script>
+</body>
+</html>
