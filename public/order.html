@@ -153,13 +153,11 @@
         </div>
       `;
 
-      // Define o valor do select dinamicamente
       const statusSelect = orderCard.querySelector('#status');
       statusSelect.value = data.status;
       ordersDiv.appendChild(orderCard);
     });
 
-    // Envia mensagem para o servidor
     function sendMessage() {
       const table = document.getElementById('table');
       const description = document.getElementById('description');
@@ -173,10 +171,10 @@
 
       if (order) {
         console.log('enviando order', order);
-        socket.emit('createOrder', order); // Envia a mensagem
-        table.value = ''; // Limpa o campo de entrada
-        description.value = ''; // Limpa o campo de entrada
-        status.value = ''; // Limpa o campo de entrada
+        socket.emit('createOrder', order);
+        table.value = '';
+        description.value = '';
+        status.value = '';
       }
 
     }

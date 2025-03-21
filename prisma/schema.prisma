@@ -13,27 +13,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       String @id @default(cuid()) @map("_id") @db.ObjectId
+model Employee {
+  id       String @id @default(cuid()) @map("_id")
   login    String @unique
   name     String
   password String
   type     Role   @default(WAITER)
+  orders Order[]
 
-  orders   Order[] @relation("UserOrders")
-
-  @@map("users")
+  @@map("employees")
 }
 
 model Order {
-  id        String   @id @default(cuid()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid()) @map("_id")
   table     Int
   description String
   status    OrderStatus @default(PENDING)
   createdAt DateTime @default(now())
   
-  waiter   User   @relation("UserOrders", fields: [waiterId], references: [id])
-  waiterId String @db.ObjectId
+  employee Employee @relation(fields: [employeeId], references: [id])
+  employeeId  String
 
   @@map("orders")
 }
