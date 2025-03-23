@@ -14,9 +14,11 @@ export class OrderGateway {
 
   constructor(private readonly orderService: OrderService) {}
 
-  // async handleConnection(client: Socket) {
-  //   console.log('client connected');
-  // }
+  async handleConnection(client: Socket) {
+    console.log('client connected');
+    const orders = await this.orderService.getOrders();
+    this.server.emit('orders', orders);
+  }
 
   @SubscribeMessage('createOrder')
   async handleMessage(@MessageBody() createOrderDto: CreateOrderDto) {

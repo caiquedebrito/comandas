@@ -106,7 +106,11 @@
         }
 
         const data = await response.json();
-        console.log('Token:', data.token);
+        const employeeString = JSON.stringify(data.employee);
+
+        sessionStorage.setItem('employee', employeeString);
+        
+        window.location.href = '/order.html';
       } catch (error) {
         document.getElementById('message').textContent = 'Login failed. Please try again.';
         console.error('Error:', error);

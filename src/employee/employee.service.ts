@@ -20,24 +20,35 @@ export class EmployeeService {
   }
 
   async login(login: string, password: string) {
-    const employee = await this.prismaService.employee.findUnique({
-      where: {
-        login,
-      },
-    });
-    
-    if (!employee) {
-      throw new Error('Credenciais inválidas');
+    try {
+      const employee = await this.prismaService.employee.findUnique({
+        where: {
+          login,
+        },
+      });
+      
+      if (!employee) {
+        throw new Error('Credenciais inválidas');
+      }
+  
+      if (employee.password !== password) {
+        throw new Error('Credenciais inválidas');
+      }
+  
+      const payload = { sub: employee.id, type: employee.type };
+      const access_token = await this.jwtService.signAsync(payload);
+      
+      return {
+        access_token,
+        employee: {
+          id: employee.id,
+          name: employee.name,
+          login: employee.login,
+          type: employee.type,
+        }
+      };
+    } catch (error) {
+      console.log(error);
     }
-
-    if (employee.password !== password) {
-      throw new Error('Credenciais inválidas');
-    }
-
-    const payload = { sub: employee.id, type: employee.type, exp: Math.floor(Date.now() / 1000) + 60 * 60 };
-    console.log('payload:', payload);
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
   }
 }

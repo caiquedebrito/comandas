@@ -114,13 +114,17 @@
       socket.emit('updateOrderStatus', { orderId, status });
     }
 
-    const type = document.getElementById('userType');
-
-    const user = {
-      id: randomId(),
-      name: 'Waiter',
-      type: type.value
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const employeeString = sessionStorage.getItem('employee');
+      const e = JSON.parse(employeeString);
+      employee.type = e?.type;
+      employee.id = e?.id;
+      employee.name = e?.name;
+      employee.login = e?.login;
+      if (!e) {
+        window.location.href = '/employee/login.html';
+      }
+    });
 
     const type = document.getElementById('employeeType');
 
@@ -128,6 +132,10 @@
     const orders = [];
 
     const socket = io('http://localhost:3000');
+
+    socket.on('connect', () => {
+      console.log('Connected to server');
+    });
 
     socket.on('order', (data) => {
       if (data.employeeId !== employee.id && employee.type !== 'CHEF') {

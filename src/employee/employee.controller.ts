@@ -8,13 +8,12 @@ export class EmployeeController {
   constructor(private employeeService: EmployeeService) {}
 
   @Post("login")
-  login(@Body() loginDto: LoginDto) {
-    this.employeeService.login(loginDto.login, loginDto.password);
+  async login(@Body() loginDto: LoginDto) {
+    return await this.employeeService.login(loginDto.login, loginDto.password);
   }
 
   @Post("register")
   register(@Body() registerEmployeeDto: RegisterEmployeeDto) {
-    console.log("register:", registerEmployeeDto);
-    this.employeeService.register(registerEmployeeDto.name, registerEmployeeDto.login, registerEmployeeDto.password,);
+    return this.employeeService.register(registerEmployeeDto.name, registerEmployeeDto.login, registerEmployeeDto.password,);
   }
 }
