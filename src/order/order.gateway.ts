@@ -19,9 +19,14 @@ export class OrderGateway {
   // }
 
   @SubscribeMessage('createOrder')
-  handleMessage(@MessageBody() createOrderDto: CreateOrderDto): void {
-    console.log('createOrderDto', createOrderDto);
-    this.orderService.createOrder(createOrderDto);
-    this.server.emit('order', createOrderDto);
+  async handleMessage(@MessageBody() createOrderDto: CreateOrderDto) {
+    const order = await this.orderService.createOrder(createOrderDto);
+    this.server.emit('order', order);
+  }
+
+  @SubscribeMessage('updateOrderStatus')
+  async handleUpdateOrderStatus(@MessageBody() data: { orderId: string, status: string }) {
+    const updatedOrder = await this.orderService.updateOrder(data.orderId, data.status);
+    this.server.emit('updateOrderStatus', updatedOrder);
   }
 }
