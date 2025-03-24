@@ -114,14 +114,25 @@
       socket.emit('updateOrderStatus', { orderId, status });
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    function loadEmployee() {
       const employeeString = sessionStorage.getItem('employee');
       const e = JSON.parse(employeeString);
-      employee.type = e?.type;
-      employee.id = e?.id;
-      employee.name = e?.name;
-      employee.login = e?.login;
       if (!e) {
+        window.location.href = '/employee/login.html';
+      }
+
+      employee.id = e.employee.id;
+      employee.name = e.employee.name;
+      employee.type = e.employee.type;
+      employee.login = e.employee.login;
+      employee.token = e.access_token;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        loadEmployee();
+      } catch (error) {
+        console.error('Error:', error);
         window.location.href = '/employee/login.html';
       }
     });
@@ -134,7 +145,7 @@
     const socket = io('http://localhost:3000');
 
     socket.on('connect', () => {
-      console.log('Connected to server');
+      console.log('Connected to server', employee);
     });
 
     socket.on('order', (data) => {

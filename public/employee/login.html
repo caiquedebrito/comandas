@@ -106,7 +106,7 @@
         }
 
         const data = await response.json();
-        const employeeString = JSON.stringify(data.employee);
+        const employeeString = JSON.stringify(data);
 
         sessionStorage.setItem('employee', employeeString);
         
