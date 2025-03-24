@@ -188,12 +188,19 @@
     });
 
     socket.on('orders', (data) => {
-      orders.push(...data);
+      let o;
+      if (employee.type === 'WAITER') {
+        o = data.filter(order => order.employeeId === employee.id);
+      } else {
+        o = data;
+      }
+
+      orders.push(...o);
 
       const ordersDiv = document.getElementById('orders');
       ordersDiv.innerHTML = '';
 
-      data.forEach(order => {
+      orders.forEach(order => {
         const orderCard = document.createElement('div');
         orderCard.className = 'order-card';
         orderCard.innerHTML = `
