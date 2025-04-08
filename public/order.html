@@ -1,248 +1,272 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat com WebSocket</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f9f9f9;
-      color: #333;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat com WebSocket</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f9f9f9;
+        color: #333;
+      }
 
-    h1 {
-      text-align: center;
-      color: #444;
-    }
+      h1 {
+        text-align: center;
+        color: #444;
+      }
 
-    input, textarea, button {
-      display: block;
-      width: 100%;
-      max-width: 400px;
-      margin: 10px auto;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
-    }
+      input,
+      textarea,
+      button {
+        display: block;
+        width: 100%;
+        max-width: 400px;
+        margin: 10px auto;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
 
-    textarea {
-      resize: vertical;
-      height: 100px;
-    }
+      textarea {
+        resize: vertical;
+        height: 100px;
+      }
 
-    button {
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
+      button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+      button:hover {
+        background-color: #0056b3;
+      }
 
-    button:active {
-      background-color: #004085;
-    }
+      button:active {
+        background-color: #004085;
+      }
 
-    .order-card {
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      padding: 15px;
-      margin: 10px 0;
-      background-color: #fff;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
+      .order-card {
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 10px 0;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
 
-    .order-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+      .order-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
 
-    .order-card h3 {
-      margin: 0 0 10px;
-      font-size: 18px;
-      color: #333;
-    }
+      .order-card h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+        color: #333;
+      }
 
-    .order-card p {
-      margin: 5px 0;
-      font-size: 14px;
-      color: #555;
-    }
-  </style>
-</head>
-<body>
-  <h1>Order</h1>
-  <div style="margin-bottom: 20px;">
-    <label for="employeeType">Select employee Type:</label>
-    <select id="employeeType" onchange="updateEmployeeType()">
-      <option value="WAITER">Waiter</option>
-      <option value="CHEF">Chef</option>
-    </select>
-  </div>
-  <div style="display: flex; justify-content: space-between; gap: 20px;"></div>
-    <div style="flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 5px; background-color: #fff;">
+      .order-card p {
+        margin: 5px 0;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Order</h1>
+    <div style="display: flex; justify-content: space-between; gap: 20px"></div>
+    <div
+      style="
+        flex: 1;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        background-color: #fff;
+      "
+    >
       <h2>Create Order</h2>
-      <input type="number" name="table" id="table" placeholder="Table Number">
-      <textarea name="description" id="description" placeholder="Order Description"></textarea>
+      <input type="number" name="table" id="table" placeholder="Table Number" />
+      <textarea
+        name="description"
+        id="description"
+        placeholder="Order Description"
+      ></textarea>
       <button onclick="sendMessage()">Enviar</button>
     </div>
-    <div style="flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 5px; background-color: #fff;">
+    <div
+      style="
+        flex: 1;
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        background-color: #fff;
+      "
+    >
       <h2>Orders</h2>
-      <div id="orders" style="height: 300px; overflow-y: auto;">
+      <div id="orders" style="height: 300px; overflow-y: auto"></div>
     </div>
-  </div>
 
-  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-  <script>
-    function updateEmployeeType() {
-      const employeeType = document.getElementById('employeeType').value;
-      employee.type = employeeType;
-    }
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
 
-    function updateOrderStatus(orderId) {
-      const status = document.getElementById(`status-${orderId}`).value;
-      const order = orders.find(order => order.id === orderId);
-      
-      socket.emit('updateOrderStatus', { orderId, status });
-    }
+      function updateOrderStatus(orderId) {
+        const status = document.getElementById(`status-${orderId}`).value;
+        const order = orders.find((order) => order.id === orderId);
 
-    function loadEmployee() {
-      const employeeString = sessionStorage.getItem('employee');
-      const e = JSON.parse(employeeString);
-      if (!e) {
-        window.location.href = '/employee/login.html';
+        socket.emit('updateOrderStatus', { orderId, status });
       }
 
-      employee.id = e.employee.id;
-      employee.name = e.employee.name;
-      employee.type = e.employee.type;
-      employee.login = e.employee.login;
-      employee.token = e.access_token;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      try {
-        loadEmployee();
-      } catch (error) {
-        console.error('Error:', error);
-        window.location.href = '/employee/login.html';
-      }
-    });
-
-    const type = document.getElementById('employeeType');
-
-    const employee = {}
-    const orders = [];
-
-    const socket = io('http://localhost:3000');
-
-    socket.on('connect', () => {
-      console.log('Connected to server', employee);
-    });
-
-    socket.on('order', (data) => {
-      if (data.employeeId !== employee.id && employee.type !== 'CHEF') {
-        return;
-      }
-
-      orders.push(data);
-
-      const ordersDiv = document.getElementById('orders');
-      const orderCard = document.createElement('div');
-      orderCard.className = 'order-card';
-      orderCard.innerHTML = `
-        <h3>Table ${data.table}</h3>
-        <p>${data.description}</p>
-        <div>
-          <p>Status:</p>
-          <select name="status" class="status" id="status-${data.id}" onchange="updateOrderStatus('${data.id}')">
-            <option value="PENDING">PENDENTE</option>
-            <option value="PREPARING">PREPARANDO</option>
-            <option value="DONE">PRONTO</option>
-          </select>
-        </div>
-      `;
-
-      const statusSelect = orderCard.querySelector('.status');
-      if (employee.type === 'WAITER') {
-        statusSelect.disabled = true;
-      }
-      statusSelect.value = data.status;
-      ordersDiv.appendChild(orderCard);
-    });
-
-    socket.on('updateOrderStatus', (data) => {
-      const order = orders.find(order => order.id === data.orderId);
-      order.status = data.status;
-
-      const statusSelect = document.getElementById(`status-${data.orderId}`);
-      statusSelect.value = data.status;
-    });
-
-    socket.on('orders', (data) => {
-      let o;
-      if (employee.type === 'WAITER') {
-        o = data.filter(order => order.employeeId === employee.id);
-      } else {
-        o = data;
-      }
-
-      orders.push(...o);
-
-      const ordersDiv = document.getElementById('orders');
-      ordersDiv.innerHTML = '';
-
-      orders.forEach(order => {
-        const orderCard = document.createElement('div');
-        orderCard.className = 'order-card';
-        orderCard.innerHTML = `
-          <h3>Table ${order.table}</h3>
-          <p>${order.description}</p>
-          <div>
-            <p>Status:</p>
-            <select name="status" class="status" id="status-${order.id}" onchange="updateOrderStatus('${order.id}')">
-              <option value="PENDING">PENDENTE</option>
-              <option value="PREPARING">PREPARANDO</option>
-              <option value="DONE">PRONTO</option>
-            </select>
-          </div>
-        `;
-
-        const statusSelect = orderCard.querySelector('.status');
-        if (employee.type === 'WAITER') {
-          statusSelect.disabled = true;
+      function loadEmployee() {
+        const employeeString = sessionStorage.getItem('employee');
+        const e = JSON.parse(employeeString);
+        if (!e) {
+          window.location.href = '/employee/login.html';
         }
-        statusSelect.value = order.status;
-        ordersDiv.appendChild(orderCard);
+
+        employee.id = e.employee.id;
+        employee.name = e.employee.name;
+        employee.type = e.employee.type;
+        employee.login = e.employee.login;
+        employee.token = e.access_token;
+      }
+
+      let socket;
+
+      document.addEventListener('DOMContentLoaded', () => {
+        try {
+          loadEmployee();
+          socket = io('http://localhost:3000', {
+            transports: ['websocket'],
+            auth: {
+              token: `Bearer ${employee.token}`,
+            },
+          });
+
+          socket.on('connect', () => {
+            console.log('Connected to server', employee);
+          });
+
+          socket.on('order', (data) => {
+            if (data.employeeId !== employee.id && employee.type !== 'CHEF') {
+              return;
+            }
+
+            orders.push(data);
+
+            const ordersDiv = document.getElementById('orders');
+            const orderCard = document.createElement('div');
+            orderCard.className = 'order-card';
+            orderCard.innerHTML = `
+            <h3>Table ${data.table}</h3>
+            <p>${data.description}</p>
+            <div>
+              <p>Status:</p>
+              <select name="status" class="status" id="status-${data.id}" onchange="updateOrderStatus('${data.id}')">
+                <option value="PENDING">PENDENTE</option>
+                <option value="PREPARING">PREPARANDO</option>
+                <option value="DONE">PRONTO</option>
+              </select>
+            </div>
+          `;
+
+            const statusSelect = orderCard.querySelector('.status');
+            if (employee.type === 'WAITER') {
+              statusSelect.disabled = true;
+            }
+
+            statusSelect.value = data.status;
+            ordersDiv.appendChild(orderCard);
+          });
+
+          socket.on('updateOrderStatus', (data) => {
+            const order = orders.find((order) => order.id === data.id);
+            order.status = data.status;
+
+            const statusSelect = document.getElementById(
+              `status-${data.id}`,
+            );
+
+            statusSelect.value = order.status;
+          });
+
+          socket.on('orders', (data) => {
+            orders.length = 0;
+            let o;
+            if (employee.type === 'WAITER') {
+              o = data.filter((order) => order.employeeId === employee.id);
+            } else {
+              o = data;
+            }
+
+            orders.push(...o);
+
+            const ordersDiv = document.getElementById('orders');
+            ordersDiv.innerHTML = '';
+
+            orders.forEach((order) => {
+              const orderCard = document.createElement('div');
+              orderCard.className = 'order-card';
+              orderCard.innerHTML = `
+              <h3>Table ${order.table}</h3>
+              <p>${order.description}</p>
+              <div>
+                <p>Status:</p>
+                <select name="status" class="status" id="status-${order.id}" onchange="updateOrderStatus('${order.id}')">
+                  <option value="PENDING">PENDENTE</option>
+                  <option value="PREPARING">PREPARANDO</option>
+                  <option value="DONE">PRONTO</option>
+                </select>
+              </div>
+            `;
+
+              const statusSelect = orderCard.querySelector('.status');
+              if (employee.type === 'WAITER') {
+                statusSelect.disabled = true;
+              }
+              
+              statusSelect.value = order.status;
+              ordersDiv.appendChild(orderCard);
+            });
+          });
+        } catch (error) {
+          console.error('Error:', error);
+          window.location.href = '/employee/login.html';
+        }
       });
-    });
-    function sendMessage() {
-      const table = document.getElementById('table');
-      const description = document.getElementById('description');
 
-      const order = {
-        table: parseInt(table.value),
-        description: description.value,
-        status: 'PENDING',
-        employeeId: 'cm8i0g65b0000sy34b9fss0ns'
+      const type = document.getElementById('employeeType');
+
+      const employee = {};
+      const orders = [];
+
+      function sendMessage() {
+        const table = document.getElementById('table');
+        const description = document.getElementById('description');
+
+        const order = {
+          table: parseInt(table.value),
+          description: description.value,
+          status: 'PENDING',
+          employeeId: employee.id,
+        };
+
+        if (order) {
+          socket.emit('createOrder', order);
+          table.value = '';
+          description.value = '';
+          status.value = '';
+        }
       }
-
-      if (order) {
-        socket.emit('createOrder', order);
-        table.value = '';
-        description.value = '';
-        status.value = '';
-      }
-
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
